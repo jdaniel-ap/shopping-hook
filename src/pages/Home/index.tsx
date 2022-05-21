@@ -48,7 +48,7 @@ const Home = (): JSX.Element => {
   }, []);
 
   function handleAddProduct(id: number) {
-    // TODO
+    addProduct(id);
   }
 
   return (
@@ -68,9 +68,7 @@ const Home = (): JSX.Element => {
               {cartItemsAmount[product.id] || 0}
             </div>
 
-            <span onClick={() => addProduct(product.id)}>
-              ADICIONAR AO CARRINHO
-            </span>
+            <span>ADICIONAR AO CARRINHO</span>
           </button>
         </li>
       ))}
