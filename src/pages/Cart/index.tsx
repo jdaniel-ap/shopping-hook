@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   MdDelete,
   MdAddCircleOutline,
   MdRemoveCircleOutline,
 } from 'react-icons/md';
+import { useCart } from '../../hooks/useCart';
+import { formatPrice } from '../../util/format';
 
 // import { useCart } from '../../hooks/useCart';
 // import { formatPrice } from '../../util/format';
@@ -18,28 +20,36 @@ interface Product {
 }
 
 const Cart = (): JSX.Element => {
-  // const { cart, removeProduct, updateProductAmount } = useCart();
+  const { cart, removeProduct, updateProductAmount } = useCart();
+  const [isFetching, setIsFetching] = useState(false);
+  const cartFormatted = cart.map((product) => ({
+    ...product,
+    subTotal: formatPrice(product.amount * product.price),
+    priceFormatted: formatPrice(product.price),
+  }));
 
-  // const cartFormatted = cart.map(product => ({
-  //   // TODO
-  // }))
-  // const total =
-  //   formatPrice(
-  //     cart.reduce((sumTotal, product) => {
-  //       // TODO
-  //     }, 0)
-  //   )
+  const total = formatPrice(
+    cart.reduce((sumTotal, product) => {
+      return (sumTotal += product.price * product.amount);
+    }, 0)
+  );
 
   function handleProductIncrement(product: Product) {
-    // TODO
+    setIsFetching(true);
+    const obj = { productId: product.id, amount: product.amount + 1 };
+    updateProductAmount(obj);
+    setIsFetching(false);
   }
 
   function handleProductDecrement(product: Product) {
-    // TODO
+    setIsFetching(true);
+    const obj = { productId: product.id, amount: product.amount - 1 };
+    updateProductAmount(obj);
+    setIsFetching(false);
   }
 
   function handleRemoveProduct(productId: number) {
-    // TODO
+    removeProduct(productId);
   }
 
   return (
@@ -47,69 +57,72 @@ const Cart = (): JSX.Element => {
       <ProductTable>
         <thead>
           <tr>
-            <th aria-label="product image" />
+            <th aria-label='product image' />
             <th>PRODUTO</th>
             <th>QTD</th>
             <th>SUBTOTAL</th>
-            <th aria-label="delete icon" />
+            <th aria-label='delete icon' />
           </tr>
         </thead>
         <tbody>
-          <tr data-testid="product">
-            <td>
-              <img src="https://rocketseat-cdn.s3-sa-east-1.amazonaws.com/modulo-redux/tenis1.jpg" alt="Tênis de Caminhada Leve Confortável" />
-            </td>
-            <td>
-              <strong>Tênis de Caminhada Leve Confortável</strong>
-              <span>R$ 179,90</span>
-            </td>
-            <td>
-              <div>
+          {cartFormatted.map((product) => (
+            <tr data-testid='product' key={product.id}>
+              <td>
+                <img src={product.image} alt={product.title} />
+              </td>
+              <td>
+                <strong>{product.title}</strong>
+                <span>{product.priceFormatted}</span>
+              </td>
+              <td>
+                <div>
+                  <button
+                    type='button'
+                    data-testid='decrement-product'
+                    disabled={isFetching || product.amount <= 1}
+                    onClick={() => handleProductDecrement(product)}
+                  >
+                    <MdRemoveCircleOutline size={20} />
+                  </button>
+                  <input
+                    type='text'
+                    data-testid='product-amount'
+                    readOnly
+                    value={product.amount}
+                  />
+                  <button
+                    type='button'
+                    data-testid='increment-product'
+                    disabled={isFetching}
+                    onClick={() => handleProductIncrement(product)}
+                  >
+                    <MdAddCircleOutline size={20} />
+                  </button>
+                </div>
+              </td>
+              <td>
+                <strong>{product.subTotal}</strong>
+              </td>
+              <td>
                 <button
-                  type="button"
-                  data-testid="decrement-product"
-                // disabled={product.amount <= 1}
-                // onClick={() => handleProductDecrement()}
+                  type='button'
+                  data-testid='remove-product'
+                  onClick={() => handleRemoveProduct(product.id)}
                 >
-                  <MdRemoveCircleOutline size={20} />
+                  <MdDelete size={20} />
                 </button>
-                <input
-                  type="text"
-                  data-testid="product-amount"
-                  readOnly
-                  value={2}
-                />
-                <button
-                  type="button"
-                  data-testid="increment-product"
-                // onClick={() => handleProductIncrement()}
-                >
-                  <MdAddCircleOutline size={20} />
-                </button>
-              </div>
-            </td>
-            <td>
-              <strong>R$ 359,80</strong>
-            </td>
-            <td>
-              <button
-                type="button"
-                data-testid="remove-product"
-              // onClick={() => handleRemoveProduct(product.id)}
-              >
-                <MdDelete size={20} />
-              </button>
-            </td>
-          </tr>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </ProductTable>
 
       <footer>
-        <button type="button">Finalizar pedido</button>
+        <button type='button'>Finalizar pedido</button>
 
         <Total>
           <span>TOTAL</span>
-          <strong>R$ 359,80</strong>
+          <strong>{total}</strong>
         </Total>
       </footer>
     </Container>
